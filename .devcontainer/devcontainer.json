@@ -1,0 +1,15 @@
+{
+  "name": "Weather Service",
+  "dockerComposeFile": "compose.yaml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "remoteUser": "vscode",
+  "updateRemoteUserUID": true,
+  "forwardPorts": [3000],
+  "postCreateCommand": "bundle install && bin/rails db:prepare && RAILS_ENV=test bin/rails db:prepare",
+  "customizations": {
+    "vscode": {
+      "extensions": ["Shopify.ruby-lsp"]
+    }
+  }
+}
