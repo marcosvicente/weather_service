@@ -8,8 +8,7 @@ class ForecastsController < ApplicationController
   end
 
   def create
-    @forecast = Forecast.new
-    @forecast.weather_archive = forecast_params[:weather_archive]
+    @forecast = Forecast.new(forecast_params)
 
     if @forecast.save
       ProcessForecastArchiveJob.perform_later(@forecast.id)

@@ -5,6 +5,7 @@ class ForecastArchiveProcessor
   MAX_JSON_FILES = 20
   MAX_JSON_FILE_SIZE = 5.megabytes
   MAX_TOTAL_JSON_SIZE = 10.megabytes
+  CACHE_TTL = 24.hours
 
   class Error < StandardError
   end
@@ -28,7 +29,12 @@ class ForecastArchiveProcessor
   private
 
   def process_archive
-    files = read_json_files
+    cache_key = "forecast-archive:v1:#{@forecast.weather_archive.blob.checksum}"
+    cache_hit = true
+    files = Rails.cache.fetch(cache_key, expires_in: CACHE_TTL) do
+      cache_hit = false
+      read_json_files
+    end
     weather_file = files.find { |file| weather_values(file.fetch("data")) }
     raise Error, "The ZIP archive does not contain a valid weather forecast JSON file." unless weather_file
 
@@ -43,7 +49,7 @@ class ForecastArchiveProcessor
       current_temp: current_temp,
       high_temp: high_temp,
       low_temp: low_temp,
-      cached: false,
+      cached: cache_hit,
       weather_data: { "files" => files },
       processing_status: "processed",
       processing_error: nil

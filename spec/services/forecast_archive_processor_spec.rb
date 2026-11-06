@@ -2,6 +2,8 @@ require "rails_helper"
 require "zip"
 
 RSpec.describe ForecastArchiveProcessor do
+  before { Rails.cache.clear }
+
   let(:forecast) { Forecast.new }
   let(:weather_data) { JSON.parse(Rails.root.join("spec/fixtures/weather_forecast.json").read) }
 
@@ -42,6 +44,23 @@ RSpec.describe ForecastArchiveProcessor do
     expect(forecast.weather_data.fetch("files").size).to eq(2)
     expect(forecast.weather_data.fetch("files").first.fetch("data")).to include(
       "current" => include("temperature_2m" => 18.5)
+    )
+  end
+
+  it "reuses cached JSON when the same archive is processed again" do
+    attach_archive(forecast, [ [ "forecast.json", JSON.generate(weather_data) ] ])
+    forecast.save!
+    described_class.call(forecast.id)
+    forecast.reload
+
+    second_forecast = Forecast.new
+    attach_archive(second_forecast, [ [ "forecast.json", JSON.generate(weather_data) ] ])
+    second_forecast.save!
+    described_class.call(second_forecast.id)
+
+    expect(second_forecast.reload).to have_attributes(
+      processing_status: "processed",
+      cached: true
     )
   end
 

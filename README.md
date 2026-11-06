@@ -2,6 +2,8 @@
 
 A Rails application that imports weather forecasts from ZIP archives. Upload a `.zip` file containing weather JSON files; Active Storage saves the upload and Sidekiq processes it asynchronously. Forecast values and the imported JSON documents are saved in PostgreSQL.
 
+Parsed archive contents are cached by Active Storage checksum for 24 hours. Re-uploading the same archive reuses the cached parse and marks the forecast as cached.
+
 ## Requirements
 
 - Docker with Docker Compose
@@ -39,7 +41,25 @@ At least one JSON file must contain a forecast in the Open-Meteo response shape,
 - `daily.temperature_2m_min` (a non-empty array)
 - `zip_code` or `postal_code`
 
-An optional `address` value is displayed with the forecast. See [`spec/fixtures/weather_forecast.json`](spec/fixtures/weather_forecast.json) for an example. All JSON objects in the ZIP are stored in the forecast record; the first valid forecast object supplies the displayed ZIP code, address, and temperatures.
+For example, a weather JSON file can look like this:
+
+```json
+{
+  "zip_code": "20500",
+  "address": "White House, Washington, DC",
+  "current": {
+    "temperature_2m": 18.5
+  },
+  "daily": {
+    "temperature_2m_max": [22.0],
+    "temperature_2m_min": [12.0]
+  }
+}
+```
+
+`current.temperature_2m` must be a number. The first values in `daily.temperature_2m_max` and `daily.temperature_2m_min` are used as today's high and low temperatures and must also be numbers. Include either `zip_code` or `postal_code`; `address` is optional and displayed when present. Other fields, such as the Open-Meteo response's `latitude`, `longitude`, `timezone`, and `*_units` metadata, are allowed and preserved.
+
+See [`spec/fixtures/weather_forecast.json`](spec/fixtures/weather_forecast.json) for a complete example. All JSON objects in the ZIP are stored in the forecast record; the first valid forecast object supplies the displayed ZIP code, address, and temperatures.
 
 The upload page displays the archive's processing status. Invalid or unreadable archives are marked as failed and show an error message.
 
