@@ -1,39 +1,28 @@
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe Forecast, type: :model do
-  it { is_expected.to validate_presence_of(:zip_code) }
-  it { is_expected.to validate_presence_of(:address) }
-  it { is_expected.to validate_presence_of(:current_temp) }
-  it { is_expected.to validate_presence_of(:high_temp) }
-  it { is_expected.to validate_presence_of(:low_temp) }
+  it { is_expected.to have_one_attached(:weather_archive) }
 
-  it { is_expected.to validate_numericality_of(:current_temp) }
-  it { is_expected.to validate_numericality_of(:high_temp) }
-  it { is_expected.to validate_numericality_of(:low_temp) }
-
-  it 'allows cached to be false' do
-    forecast = Forecast.new(
-      zip_code: '10001',
-      address: 'New York, NY',
-      current_temp: 20,
-      high_temp: 25,
-      low_temp: 15,
-      cached: false
+  it "accepts an attached ZIP before it has been processed" do
+    forecast = described_class.new
+    forecast.weather_archive.attach(
+      io: StringIO.new("zip data"),
+      filename: "weather.zip",
+      content_type: "application/zip"
     )
 
     expect(forecast).to be_valid
   end
 
-  it 'requires cached to be set' do
-    forecast = Forecast.new(
-      zip_code: '10001',
-      address: 'New York, NY',
-      current_temp: 20,
-      high_temp: 25,
-      low_temp: 15
+  it "requires a ZIP file" do
+    forecast = described_class.new
+    forecast.weather_archive.attach(
+      io: StringIO.new("not a zip"),
+      filename: "weather.txt",
+      content_type: "text/plain"
     )
 
     expect(forecast).not_to be_valid
-    expect(forecast.errors[:cached]).to be_present
+    expect(forecast.errors[:weather_archive]).to include("must be a .zip file")
   end
 end

@@ -1,2 +1,39 @@
-<h1>Forecasts#show</h1>
-<p>Find me in app/views/forecasts/show.html.erb</p>
+<main class="tw-min-h-screen tw-bg-gradient-to-br tw-from-sky-50 tw-to-blue-100 tw-flex tw-items-center tw-justify-center tw-p-4">
+  <section class="card border-0 shadow-lg tw-w-full tw-max-w-3xl">
+    <div class="card-body p-4 p-md-5">
+      <p class="text-uppercase text-primary fw-bold small mb-2">Weather data import</p>
+      <h1 class="card-title h2 fw-bold">Archive status</h1>
+      <p class="text-secondary">Archive: <strong><%= @forecast.weather_archive.filename %></strong></p>
+
+      <% if @forecast.processing_status == "processed" %>
+        <p class="alert alert-success" role="status">Archive processed successfully.</p>
+        <h2 class="h4">Forecast for <%= @forecast.address %></h2>
+        <p class="text-secondary">ZIP code: <strong><%= @forecast.zip_code %></strong></p>
+        <div class="row g-3 my-3">
+          <% [
+            ["Current temperature", @forecast.current_temp, "text-primary"],
+            ["Today's high", @forecast.high_temp, "text-danger"],
+            ["Today's low", @forecast.low_temp, "text-info"]
+          ].each do |label, temperature, color| %>
+            <div class="col-12 col-md-4">
+              <section class="card h-100 border-0 bg-light">
+                <div class="card-body">
+                  <h3 class="h6 text-secondary"><%= label %></h3>
+                  <p class="display-6 fw-bold <%= color %> mb-0"><%= number_with_precision(temperature, precision: 1) %> °C</p>
+                </div>
+              </section>
+            </div>
+          <% end %>
+        </div>
+        <p class="text-secondary">JSON files imported: <strong><%= @forecast.weather_data.fetch("files", []).size %></strong></p>
+      <% elsif @forecast.processing_status == "failed" %>
+        <p class="alert alert-danger" role="alert">Unable to process the archive: <%= @forecast.processing_error %></p>
+      <% else %>
+        <p class="alert alert-info" role="status">The archive is being processed. Refresh this page to check its status.</p>
+        <%= link_to "Refresh status", @forecast, class: "btn btn-outline-primary" %>
+      <% end %>
+
+      <%= link_to "Upload another archive", root_path, class: "btn btn-outline-primary" %>
+    </div>
+  </section>
+</main>

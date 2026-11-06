@@ -10,8 +10,29 @@ services:
       PGHOST: db
       PGUSER: postgres
       PGPASSWORD: postgres
+      REDIS_URL: redis://redis:6379/0
     depends_on:
       db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  jobs:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    command: sh -c "bundle install && bundle exec sidekiq"
+    volumes:
+      - ..:/workspace:cached
+    environment:
+      PGHOST: db
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   db:
@@ -25,6 +46,15 @@ services:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d weather_service_development"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 10

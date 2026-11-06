@@ -6,7 +6,7 @@
   "remoteUser": "vscode",
   "updateRemoteUserUID": true,
   "forwardPorts": [3000],
-  "postCreateCommand": "bundle install && bin/rails db:prepare && RAILS_ENV=test bin/rails db:prepare",
+  "postCreateCommand": "bundle install && npm ci && npm run build:css && bin/rails db:prepare && RAILS_ENV=test bin/rails db:prepare",
   "customizations": {
     "vscode": {
       "extensions": ["Shopify.ruby-lsp"]

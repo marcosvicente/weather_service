@@ -1,2 +1,29 @@
-<h1>Forecasts#index</h1>
-<p>Find me in app/views/forecasts/index.html.erb</p>
+<main class="tw-min-h-screen tw-bg-gradient-to-br tw-from-sky-50 tw-to-blue-100 tw-flex tw-items-center tw-justify-center tw-p-4">
+  <section class="card border-0 shadow-lg tw-w-full tw-max-w-2xl">
+    <div class="card-body p-4 p-md-5">
+      <p class="text-uppercase text-primary fw-bold small mb-2">Weather data import</p>
+      <h1 class="card-title display-6 fw-bold">Upload a forecast archive</h1>
+      <p class="card-text text-secondary mb-4">Select a ZIP archive containing one or more weather forecast JSON files (up to 10 MB).</p>
+
+      <% if @forecast&.errors&.any? %>
+        <ul class="alert alert-danger" role="alert">
+          <% @forecast.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      <% end %>
+
+      <%= form_with model: @forecast, multipart: true do |form| %>
+        <div class="mb-3">
+          <%= form.label :weather_archive, "ZIP archive", class: "form-label fw-semibold" %>
+          <%= form.file_field :weather_archive,
+            class: "form-control form-control-lg",
+            accept: ".zip,application/zip",
+            required: true,
+            autofocus: true %>
+        </div>
+        <%= form.submit "Upload archive", class: "btn btn-primary btn-lg w-100" %>
+      <% end %>
+    </div>
+  </section>
+</main>
