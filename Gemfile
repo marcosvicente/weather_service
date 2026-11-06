@@ -28,7 +28,7 @@ gem "solid_cache"
 gem "solid_queue"
 gem "solid_cable"
 gem "sidekiq"
-gem "rubyzip", "~> 2.4"
+gem "rubyzip", "~> 3.7"
 
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
